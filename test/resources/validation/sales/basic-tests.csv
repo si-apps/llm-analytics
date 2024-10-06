@@ -1,0 +1,9 @@
+name,question,answer
+group by,show total sales per region and order by total sales desc,"[['South',762739.4800000016],['West Coast', 755660.8099999997],['North East', 752432.1899999994],['Midwest',720239.6099999992]]"
+count distinct,how many products are there?,[[5]]
+max,what is a highest price of product P001?,[[100.0]]
+min,what is a lowest price of product P002?,[[10.01]]
+sum,show the sum of payments by each payment method desc,"[['PayPal',1007439.01],['Bank Transfer',1006797.95],['Credit Card',976835.13]]"
+date and sum,what are total sales for the entire month january 24?,[[359535.06]]
+multiple conditions,show a list of unique customers from south who bought P001 and paid more 88 $ or more by Bank Transfer on january. Return only customer ids order by customer id,"[['C3475'],['C641']]"
+filter by payment method,How many sales were paid with paypal?,[[3357]]

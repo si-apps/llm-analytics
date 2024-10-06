@@ -1,0 +1,78 @@
+.search-box {
+  width: 75%;
+  padding: 10px;
+  border: 2px solid #ccc;
+  border-radius: 25px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.search-box:focus {
+  border-color: #66afe9;
+  box-shadow: 0 0 5px rgba(102, 175, 233, 0.5);
+}
+
+.status-bar {
+    width: 75%;
+    border-radius: 25px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Text inside the status bar */
+.status-text {
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+}
+
+.results {
+    width: 75%;
+}
+
+/* Basic button styling */
+.plus-button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    background-color: rgba(102, 175, 233, 0.5); /* Light blue */
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50%; /* Make it circular */
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Drop shadow for depth */
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+/* Hover effect */
+.plus-button:hover {
+    background-color: midnightblue; /* Darker blue when hovered */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+}
+
+/* Focus and active styles */
+.plus-button:active {
+    background-color: #3e8e41; /* Even darker green when pressed */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Reduce shadow depth */
+}
+
+table.sub-results {
+    width: 100%;
+}
+
+table.sub-results td.sub-results-drill-down-button {
+    vertical-align: top;width: 5%;
+}
+
+table.sub-results td.sub-results-results {
+    width: 80%;
+}

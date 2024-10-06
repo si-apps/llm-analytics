@@ -1,0 +1,5 @@
+name,question,answer
+count distinct,how many regions are there?,[[5]]
+max,which is the region with the most countries? Return only a single region name,[['Africa']]
+min and null,which is the region with the least countries? Ignore countries without a region,[['Oceania']]
+group by,show the number of countries per region and order by number of countries desc. secondary order will be region name. Please ignore countries without a region,"[['Africa',60],['Americas',57],['Asia',51],['Europe',51],['Oceania',29]]"
