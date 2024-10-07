@@ -1,5 +1,5 @@
 # LLM Analytics
-TODO
+Super easy and effective llm analytics tool
 
 ### Bedrock User Permissions 
 Permissions needed:
