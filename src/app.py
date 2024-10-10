@@ -1,5 +1,6 @@
 import logging
 import os
+from functools import lru_cache
 
 from flask import Flask, render_template, request, jsonify
 
@@ -8,8 +9,11 @@ from question_to_sql import get_prompt
 from sql_fixer import fix_sql
 from utils import init_logging, init_creds_from_file, invoke_llm
 from visitors_limit import VisitorsLimit
+from flask_compress import Compress
 
-app = Flask(__name__)
+
+app = Flask(__name__, static_url_path="", static_folder="static")
+Compress(app)
 visitors_limit = VisitorsLimit(100, 5, 1800)
 
 _VERSION = "0.0.3"
@@ -26,7 +30,9 @@ def _app_main():
                            advanced="advanced" in request.args,
                            gtag=os.environ.get("GTAG_ID", ""),
                            version=_VERSION,
-                           recaptcha_key=os.environ.get("RECAPTCHA_KEY", ""))
+                           recaptcha_key=os.environ.get("RECAPTCHA_KEY", ""),
+                           title=os.environ.get("TITLE", "LLM Analytics"),
+                           url=os.environ.get("URL", request.host_url))
 
 
 @app.route('/sql')
@@ -59,6 +65,7 @@ def _question_to_sql():
     return jsonify({"sql": sql})
 
 
+@lru_cache(maxsize=100)
 def _verify_recaptcha(token: str) -> bool:
     from urllib.parse import urlencode
     from urllib.request import urlopen

@@ -20,7 +20,10 @@ def init_logging():
 
 
 def init_creds_from_file():
-    os.environ["AWS_CONFIG_FILE"] = os.path.join(get_project_folder(), "aws", "config")
+    file_name = os.path.join(get_project_folder(), "aws", "config")
+    if os.path.exists(file_name):
+        os.environ["AWS_CONFIG_FILE"] = file_name
+        logging.info("AWS config file set")
 
 
 def invoke_llm(prompt: str, model_id: str = _DEFAULT_MODEL_ID) -> str:
