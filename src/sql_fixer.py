@@ -28,6 +28,7 @@ def _update_col_name(name: str) -> str:
     name = name.replace('"', '')
     name = name.replace(' ', '_')
     name = name.replace('-', '_')
+    name = name.replace('*', 'all')
     return name
 
 

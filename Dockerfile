@@ -4,7 +4,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 WORKDIR /app
 ENV FLASK_APP=app.py
 COPY src/*.py .
-COPY src/templates/duckdb.html ./templates/
-COPY src/static/style.css ./static/
+COPY src/templates/index.html ./templates/
+COPY src/static/* ./static/
 COPY src/logging.conf .
 CMD [ "python", "-u", "./app.py"]

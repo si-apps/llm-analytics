@@ -1,7 +1,10 @@
+from time import sleep
+
 import pytest
 
 from sql_fixer import fix_sql
 from utils import get_project_folder, init_logging
+from visitors_limit import VisitorsLimit
 
 
 @pytest.fixture(autouse=True)
@@ -56,8 +59,29 @@ HAVING COUNT(DISTINCT "region-code") > 0""")
         assert (fix_sql('SELECT * FROM my_table')
                 == 'SELECT * FROM my_table')
 
+    def test_count_star(self):
+        assert (fix_sql('SELECT COUNT(*) FROM my_table')
+                == 'SELECT COUNT(*) AS count_all_ FROM my_table')
+
+
     def test_order_by(self):
         assert (fix_sql('SELECT SUBSTRING(name, 1, 1) AS "some-col" FROM my_table ORDER BY "some-col" LIMIT 5')
                 == 'SELECT SUBSTRING(name, 1, 1) AS some_col FROM my_table ORDER BY some_col LIMIT 5')
         assert (fix_sql('SELECT * FROM my_table ORDER BY "customer-name" LIMIT 5')
                 == 'SELECT * FROM my_table ORDER BY "customer-name" LIMIT 5')
+
+
+class TestVisitorsLimit:
+    def test_visitors_limit(self):
+        vl = VisitorsLimit(5, 2, 2)
+        assert vl.visit("1")
+        assert vl.visit("1")
+        assert not vl.visit("1")
+        assert vl.visit("2")
+        assert vl.visit("2")
+        assert not vl.visit("2")
+        assert vl.visit("3")
+        assert not vl.visit("3")
+        sleep(3)
+        assert vl.visit("1")
+        assert vl.visit("4")
