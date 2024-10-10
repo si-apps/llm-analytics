@@ -24,7 +24,7 @@ def _ping():
 def _app_main():
     return render_template("index.html",
                            advanced="advanced" in request.args,
-                           gtag=os.environ.get("GTAG", ""),
+                           gtag=os.environ.get("GTAG_ID", ""),
                            version=_VERSION,
                            recaptcha_key=os.environ.get("RECAPTCHA_KEY", ""))
 
