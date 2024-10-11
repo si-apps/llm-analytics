@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from functools import lru_cache
@@ -59,9 +60,14 @@ def _question_to_sql():
     previous_error = request.args.get("previous_error", None)
     prompt = get_prompt(table_name, question, metadata, sample_data, distinct_values, hint, previous_sql, previous_error)
     model_id = request.args["model_id"]
-    logging.info(prompt)
     sql = invoke_llm(prompt, model_id)
     sql = fix_sql(sql)
+    logging.info("Invoke details: %s", {
+        "question": question,
+        "metadata-columns": [row["column_name"] for row in json.loads(metadata)],
+        "previous-error": previous_error,
+        "sql": sql,
+    })
     return jsonify({"sql": sql})
 
 
@@ -78,13 +84,13 @@ def _verify_recaptcha(token: str) -> bool:
     })
     data = urlopen('https://www.google.com/recaptcha/api/siteverify', params.encode('utf-8')).read()
     result = json.loads(data)
-    print(result)
     success = result.get('success', None)
     return success
 
 
 if __name__ == '__main__':
     init_logging()
+    logging.getLogger("werkzeug").setLevel('WARNING')
     logging.info(f"Going to start the app. Version: {_VERSION}")
     init_creds_from_file()
     app.run(host="0.0.0.0", port=os.environ.get("APP_PORT", 5000))
