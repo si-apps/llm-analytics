@@ -26,10 +26,20 @@ async function create_db(file_url, file_name) {
     return db
 }
 
+function update_loader(index, visible) {
+    document.getElementById("loader-" + index.toString()).style.display = visible ? "block" : "none";
+}
+
 async function file_change() {
     let file = document.getElementById("file").files[0];
     let url = (window.URL || window.webkitURL).createObjectURL(file);
-    db = await create_db(url, file.name);
+    try {
+        update_loader(0, true);
+        db = await create_db(url, file.name);
+    }
+    finally {
+        update_loader(0, false);
+    }
 }
 
 async function handleKeyDown(event) {
@@ -40,23 +50,27 @@ async function handleKeyDown(event) {
         let table_name = get_table_name(index);
         clear_results_and_status(index)
 
+        if (document.getElementById("file").files.length === 0) {
+            set_status(index, "Please upload a file first");
+            return
+        }
         if (db == null) {
             set_status(index, "Database not initialized. Please try again in a few seconds");
             return null
         }
-        if (index > 0) {
-            await db.query(`DROP TABLE IF EXISTS ${table_name}`);
-            let load_query_sql = `CREATE TABLE ${table_name} AS (${sqls[index - 1]})`;
-            await db.query(load_query_sql);
-            console.log('Sub query loaded')
-        } else {
-            if (document.getElementById("file").files.length === 0) {
-                set_status(index, "Please upload a file first");
-                return
+        try {
+            update_loader(index, true);
+            if (index > 0) {
+                await db.query(`DROP TABLE IF EXISTS ${table_name}`);
+                let load_query_sql = `CREATE TABLE ${table_name} AS (${sqls[index - 1]})`;
+                await db.query(load_query_sql);
+                console.log('Sub query loaded')
             }
-
+            sqls[index] = await run_query(index, table_name);
         }
-        sqls[index] = await run_query(index, table_name);
+        finally {
+            update_loader(index, false);
+        }
         if ((sqls[index] != null) && (index < sqls.length - 1)) {
             document.getElementById(`drill_down_button-${index}`).style.display = 'block';
         }
