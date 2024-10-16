@@ -37,6 +37,7 @@ def get_prompt(table_name: str, question: str, metadata: str, sample_data: str,
                previous_error: str = None) -> str:
     prompt = f"""<instructions>
 I have a table with the columns matching the json data below. The table name is {table_name}.
+you MUST query from this table only. No other tables are available.
 Please create a sql statement I can run on my db to get the answer to the question:
 {question}
 SUPER IMPORTANT: You MUST follow the ALL OF the following rules when constructing the SQL. 

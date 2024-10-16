@@ -15,8 +15,9 @@ async function create_db(file_url, file_name) {
         let load_query = `CREATE TABLE ${table_name} AS
                     SELECT * FROM read_csv("${table_name}", auto_detect=true)`
         await db.query(load_query);
+        let record_count = JSON.parse(await db.query(`SELECT COUNT(1) AS cnt FROM ${table_name}`))[0]["cnt"]
         document.getElementById("record_count").innerText = "(" +
-            JSON.parse(await db.query(`SELECT COUNT(1) AS cnt FROM ${table_name}`))[0]["cnt"] + " records)";
+            record_count.toLocaleString() + " records)";
     }
     else {
         console.log("Unsupported file format: " + file_name)
@@ -38,6 +39,11 @@ async function handleKeyDown(event) {
         let index = parseInt(event.target.id[event.target.id.length - 1]);
         let table_name = get_table_name(index);
         clear_results_and_status(index)
+
+        if (db == null) {
+            set_status(index, "Database not initialized. Please try again in a few seconds");
+            return null
+        }
         if (index > 0) {
             await db.query(`DROP TABLE IF EXISTS ${table_name}`);
             let load_query_sql = `CREATE TABLE ${table_name} AS (${sqls[index - 1]})`;
@@ -90,9 +96,16 @@ async function run_query(index) {
     my_url.searchParams.append("hint", document.getElementById("hint").value);
     let num_samples = document.getElementById("num_samples").value;
     if (num_samples > 0)
-        my_url.searchParams.append("sample_data", await db.query(`SELECT *
-                                                                  FROM ${table_name} LIMIT ${num_samples}`));
-    let metadata = await db.query(`SUMMARIZE ${table_name}`);
+        my_url.searchParams.append("sample_data", await db.query(
+            `SELECT * FROM ${table_name} LIMIT ${num_samples}`));
+
+    let metadata;
+    try {
+        metadata = await db.query(`SUMMARIZE ${table_name}`);
+    } catch (e) {
+        console.log("Error in SUMMARIZE: " + e.toString())
+        metadata = await db.query(`DESCRIBE ${table_name}`);
+    }
     my_url.searchParams.append("metadata", metadata);
     let cols_with_distinct_values = [];
     JSON.parse(metadata).forEach((column) => {

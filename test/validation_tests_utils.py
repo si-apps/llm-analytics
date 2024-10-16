@@ -60,8 +60,15 @@ def _data_to_str(data: Iterable) -> str:
 def validate_test(test: ValidationTest, file: str, model_id: str = None):
     with duckdb.connect() as con:
         con.execute(f"CREATE TABLE my_table AS SELECT * FROM read_csv_auto('{file}')")
-        metadata = list(_fetch_dict(con, "SUMMARIZE my_table"))
-        distinct_values_cols = [c["column_name"] for c in metadata if c["approx_unique"] <= 20]
+
+        try:
+            metadata = list(_fetch_dict(con, "SUMMARIZE my_table"))
+            distinct_values_cols = [c["column_name"] for c in metadata if c["approx_unique"] <= 20]
+        except Exception as e:
+            logging.info(f"Got SQL error: {e}. Going to retry")
+            metadata = list(_fetch_dict(con, "DESCRIBE my_table"))
+            distinct_values_cols = []
+
         if len(distinct_values_cols) > 0:
             distinct_values_sql = "SELECT "
             for col in distinct_values_cols:
