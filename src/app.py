@@ -84,7 +84,7 @@ def _verify_recaptcha(token: str) -> bool:
     })
     data = urlopen('https://www.google.com/recaptcha/api/siteverify', params.encode('utf-8')).read()
     result = json.loads(data)
-    success = result.port('success', None)
+    success = result.get('success', None)
     return success
 
 
