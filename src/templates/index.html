@@ -21,6 +21,7 @@
         <link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css" rel="stylesheet">
         <script src="llm_analytics.js"></script>
         <link href="style.css" rel="stylesheet">
+        <script type="module" src="llm_analytics_module.js"></script>
         <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
 {% if recaptcha_key != "" %}
     {% block captcha_content %}
@@ -64,27 +65,6 @@
         </script>
     {% endblock analytics_content %}
 {% endif %}
-<script type="module">
-    import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm/+esm";
-
-    async function instantiate(duckdb) {
-  const CDN_BUNDLES = duckdb.getJsDelivrBundles(),
-  bundle = await duckdb.selectBundle(CDN_BUNDLES),
-  worker_url = URL.createObjectURL(
-    new Blob([ `importScripts("${bundle.mainWorker}");` ], {
-      type: "text/javascript"
-    })
-  );
-  const worker = new Worker(worker_url),
-  logger = new duckdb.ConsoleLogger("DEBUG"),
-  db = new duckdb.AsyncDuckDB(logger, worker);
-
-  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-  URL.revokeObjectURL(worker_url);
-  return db;
-}
-window.duck_db = await instantiate(duckdb);
-        </script>
     </head>
 <body>
     <h3>Choose a CSV or a JSON lines file to analyze and ask analytic questions about it</h3>

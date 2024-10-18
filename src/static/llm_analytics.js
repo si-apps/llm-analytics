@@ -8,12 +8,13 @@ async function create_db(file_url, file_name) {
     window.duck_db.registerFileURL(table_name, file_url, 4, false);
     if (file_name.endsWith(".jsonl")) {
         let load_query = `CREATE TABLE ${table_name} AS
-                    SELECT * FROM read_json("${table_name}",format =newline_delimited,auto_detect=true)`
+                    SELECT * FROM read_json("${table_name}",format =newline_delimited,
+                                            auto_detect=true, sample_size=100000)`
         await db.query(load_query);
     }
     else if (file_name.endsWith(".csv")) {
         let load_query = `CREATE TABLE ${table_name} AS
-                    SELECT * FROM read_csv("${table_name}", auto_detect=true)`
+                    SELECT * FROM read_csv("${table_name}", auto_detect=true, sample_size=100000)`
         await db.query(load_query);
         let record_count = JSON.parse(await db.query(`SELECT COUNT(1) AS cnt FROM ${table_name}`))[0]["cnt"]
         document.getElementById("record_count").innerText = "(" +
