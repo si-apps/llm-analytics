@@ -67,8 +67,26 @@
 {% endif %}
     </head>
 <body>
-    <h3>Choose a CSV or a JSON lines file to analyze and ask analytic questions about it</h3>
-    <p>File will be analyzed locally, inside your web browser</p>
+    <div class="container">
+        <h1>{{title}}</h1>
+        <p>
+            Upload <span class="important">CSV or JSON Lines files</span> and analyze them directly
+            in your browser using <span class="highlight">simple, free-text prompts</span>. The system uses
+            <span class="highlight">advanced language models (LLM)</span> to convert your requests into
+            <span class="important">database queries</span> automatically.
+        </p>
+        <p>
+            These queries are run <span class="important">locally within your browser</span>, eliminating the need for
+            an external database. Your file stays private—only <span class="important">metadata and sample data</span>
+            are sent to the LLM.
+        </p>
+        <p>
+            This approach not only ensures <span class="highlight">privacy</span> but also
+            <span class="highlight">saves resources</span>, as everything runs in the browser. It enables
+            <span class="highlight">quick and efficient analysis</span> of large files
+            <span class="important">without technical expertise</span>.
+        </p>
+    </div>
     <input onchange="file_change()" type="file" id="file" name="file" /><label id="record_count"></label>
     <div class="metadata" id="metadata-0"></div>
     <textarea class="search-box" id="question_input-0" rows="3" onkeydown="handleKeyDown(event)"></textarea>

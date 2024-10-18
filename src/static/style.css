@@ -109,3 +109,27 @@ table.sub-results td.sub-results-results {
   width: 75%;
   padding: 10px;
 }
+
+.container {
+    max-width: 60%;
+    padding: 10px;
+    margin: 10px 50px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+p {
+    margin-bottom: 20px;
+}
+.highlight {
+    color: #66afe9;
+    font-weight: bold;
+}
+.important {
+    font-weight: bold;
+    padding: 2px 4px;
+}
+h1 {
+    color: #66afe9;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
