@@ -70,8 +70,7 @@
     <h3>Choose a CSV or a JSON lines file to analyze and ask analytic questions about it</h3>
     <p>File will be analyzed locally, inside your web browser</p>
     <input onchange="file_change()" type="file" id="file" name="file" /><label id="record_count"></label>
-
-    <br/><br/>
+    <div class="metadata" id="metadata-0"></div>
     <textarea class="search-box" id="question_input-0" rows="3" onkeydown="handleKeyDown(event)"></textarea>
     <br/>
 
@@ -94,10 +93,11 @@
     <table class="sub-results">
         <tr>
             <td class="sub-results-drill-down-button">
-                <button id="drill_down_button-0" class="plus-button" style="display: none" onclick="document.getElementById('drill_down-0').style.display = 'block'">+</button>
+                <button id="drill_down_button-0" class="plus-button" style="display: none" onclick="drill_down(0)">+</button>
             </td>
             <td class="sub-results-results">
     <div id="drill_down-0" style="display: none;">
+        <div class="metadata" id="metadata-1"></div>
         <textarea class="search-box" id="question_input-1" rows="3" onkeydown="handleKeyDown(event)"></textarea>
         <div class="status-bar">
             <span id="status-1" class="status-text"></span>
@@ -108,10 +108,11 @@
         <table class="sub-results">
             <tr>
                 <td class="sub-results-drill-down-button">
-                    <button id="drill_down_button-1" class="plus-button" style="display: none" onclick="document.getElementById('drill_down-1').style.display = 'block'">+</button>
+                    <button id="drill_down_button-1" class="plus-button" style="display: none" onclick="drill_down(1)">+</button>
                 </td>
                 <td class="sub-results-results">
 <div id="drill_down-1" style="display: none;">
+        <div class="metadata" id="metadata-2"></div>
         <textarea class="search-box" id="question_input-2" rows="3" onkeydown="handleKeyDown(event)"></textarea>
         <div class="status-bar">
             <span id="status-2" class="status-text"></span>

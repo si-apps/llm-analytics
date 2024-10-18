@@ -1,7 +1,9 @@
+import re
 from time import sleep
 
 import pytest
 
+from app import app
 from sql_fixer import fix_sql
 from utils import get_project_folder, init_logging
 from visitors_limit import VisitorsLimit
@@ -85,3 +87,17 @@ class TestVisitorsLimit:
         sleep(3)
         assert vl.visit("1")
         assert vl.visit("4")
+
+
+class TestFlaskApp:
+    def test_ping(self):
+        result = app.test_client().get("/ping").json
+        assert result["status"] == "ok"
+        assert re.match(r"\d+\.\d+\.\d+", result["version"]) is not None
+
+    def test_main_html(self):
+        result = app.test_client().get("/")
+        assert result.status_code == 200
+        html = result.text
+        assert html.startswith("<html") and html.endswith("/html>")
+

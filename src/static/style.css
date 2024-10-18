@@ -94,3 +94,18 @@ table.sub-results td.sub-results-results {
     50%{background-size:calc(100%/3) 100%,calc(100%/3) 0%  ,calc(100%/3) 100%}
     66%{background-size:calc(100%/3) 100%,calc(100%/3) 100%,calc(100%/3) 0%  }
 }
+
+.column_button {
+    border: 1px solid #ccc;
+    background: none;
+    -webkit-appearance: none;
+}
+
+.column_button:hover {
+    border-color: #66afe9;
+}
+
+.metadata {
+  width: 75%;
+  padding: 10px;
+}

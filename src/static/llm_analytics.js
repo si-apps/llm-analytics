@@ -27,6 +27,21 @@ async function create_db(file_url, file_name) {
     return db
 }
 
+async function create_metadata_buttons(index) {
+    let metadata = JSON.parse(await db.query(`DESCRIBE ${get_table_name(index)}`));
+    let column_names = metadata.map(column => column["column_name"]);
+    let html = "";
+    column_names.forEach((column_name) => {
+        html += `<button class="column_button" onclick="column_click(0,'${column_name}')">${column_name}</button>`;
+    });
+    document.getElementById(`metadata-${index}`).innerHTML = html;
+}
+
+function column_click(index, column_name) {
+    document.getElementById(`question_input-${index}`).value += column_name + " ";
+    document.getElementById(`question_input-${index}`).focus();
+}
+
 function update_loader(index, visible) {
     document.getElementById("loader-" + index.toString()).style.display = visible ? "block" : "none";
 }
@@ -37,6 +52,7 @@ async function file_change() {
     try {
         update_loader(0, true);
         db = await create_db(url, file.name);
+        await create_metadata_buttons(0)
     }
     finally {
         update_loader(0, false);
@@ -61,12 +77,6 @@ async function handleKeyDown(event) {
         }
         try {
             update_loader(index, true);
-            if (index > 0) {
-                await db.query(`DROP TABLE IF EXISTS ${table_name}`);
-                let load_query_sql = `CREATE TABLE ${table_name} AS (${sqls[index - 1]})`;
-                await db.query(load_query_sql);
-                console.log('Sub query loaded')
-            }
             sqls[index] = await run_query(index, table_name);
         }
         finally {
@@ -184,6 +194,7 @@ async function run_query(index) {
     }
     return null
 }
+
 function show_data(index, text_data) {
     try {
 
@@ -199,6 +210,16 @@ function show_data(index, text_data) {
     } catch (e) {
         set_status(index, e)
     }
+}
+
+async function drill_down(index) {
+    document.getElementById(`drill_down-${index}`).style.display = 'block';
+    let table_name = get_table_name(index + 1)
+    console.log("Drilling down to " + table_name)
+    await db.query(`DROP TABLE IF EXISTS ${table_name}`);
+    let load_query_sql = `CREATE TABLE ${table_name} AS (${sqls[index]})`;
+    await db.query(load_query_sql);
+    await create_metadata_buttons(index + 1)
 }
 
 function init_device_fingerprint() {
