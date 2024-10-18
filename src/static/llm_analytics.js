@@ -117,13 +117,20 @@ async function run_query(index) {
     let metadata;
     try {
         metadata = await db.query(`SUMMARIZE ${table_name}`);
+        metadata = JSON.parse(metadata).map(column => {
+            return {
+                column_name: column["column_name"],
+                column_type: column["column_type"],
+                approx_unique: column["approx_unique"]
+            };
+        });
     } catch (e) {
         console.log("Error in SUMMARIZE: " + e.toString())
-        metadata = await db.query(`DESCRIBE ${table_name}`);
+        metadata = JSON.parse(await db.query(`DESCRIBE ${table_name}`));
     }
-    my_url.searchParams.append("metadata", metadata);
+    my_url.searchParams.append("metadata", JSON.stringify(metadata));
     let cols_with_distinct_values = [];
-    JSON.parse(metadata).forEach((column) => {
+    metadata.forEach((column) => {
         if (column["approx_unique"] <= 20) {
             cols_with_distinct_values.push(column["column_name"]);
         }
