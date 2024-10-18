@@ -5,6 +5,7 @@ let _visitor_id = null;
 async function create_db(file_url, file_name) {
     const db = await window.duck_db.connect();
     let table_name = get_table_name(0);
+    await db.query("DROP TABLE IF EXISTS " + table_name);
     window.duck_db.registerFileURL(table_name, file_url, 4, false);
     if (file_name.endsWith(".jsonl")) {
         let load_query = `CREATE TABLE ${table_name} AS
@@ -37,6 +38,12 @@ async function create_metadata_buttons(index) {
     document.getElementById(`metadata-${index}`).innerHTML = html;
 }
 
+function clear_metadata_buttons() {
+    for (let i = 0; i < 3; i++) {
+        document.getElementById(`metadata-${i}`).innerHTML = "";
+    }
+}
+
 function column_click(index, column_name) {
     if (column_name.includes(" ")) {
         column_name = `"${column_name}"`
@@ -50,6 +57,10 @@ function update_loader(index, visible) {
 }
 
 async function file_change() {
+    clear_metadata_buttons();
+    for (let i = 0; i < 3; i++) {
+        clear_results_and_status(i);
+    }
     let file = document.getElementById("file").files[0];
     let url = (window.URL || window.webkitURL).createObjectURL(file);
     try {
