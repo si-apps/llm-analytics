@@ -32,12 +32,15 @@ async function create_metadata_buttons(index) {
     let column_names = metadata.map(column => column["column_name"]);
     let html = "";
     column_names.forEach((column_name) => {
-        html += `<button class="column_button" onclick="column_click(0,'${column_name}')">${column_name}</button>`;
+        html += `<button class="column_button" onclick="column_click(${index},'${column_name}')">${column_name}</button>`;
     });
     document.getElementById(`metadata-${index}`).innerHTML = html;
 }
 
 function column_click(index, column_name) {
+    if (column_name.includes(" ")) {
+        column_name = `"${column_name}"`
+    }
     document.getElementById(`question_input-${index}`).value += column_name + " ";
     document.getElementById(`question_input-${index}`).focus();
 }
