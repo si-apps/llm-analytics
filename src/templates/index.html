@@ -19,6 +19,7 @@
         <meta name="twitter:url" content="{{url}}">
 
         <link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="llm_analytics.js"></script>
         <link href="style.css" rel="stylesheet">
         <script type="module" src="llm_analytics_module.js"></script>
@@ -68,7 +69,6 @@
     </head>
 <body>
     <div class="container">
-        <h1>{{title}}</h1>
         <p>
             Upload <span class="important">CSV or JSON Lines files</span> and analyze them directly
             in your browser using <span class="highlight">simple, free-text prompts</span>. The system uses
@@ -107,6 +107,9 @@
         <span id="loader-0" class="loader"></span>
     </div>
     <div class="results" id="results-table-0"></div>
+    <div>
+    <canvas id="my-chart-0" class="chart-canvas"></canvas>
+    </div>
     <br/>
     <table class="sub-results">
         <tr>
@@ -123,6 +126,9 @@
         </div>
         <div class="results" id="results-table-1"></div>
         <br/>
+        <div>
+        <canvas id="my-chart-1" class="chart-canvas"></canvas>
+        </div>
         <table class="sub-results">
             <tr>
                 <td class="sub-results-drill-down-button">
@@ -137,6 +143,9 @@
             <span id="loader-2" class="loader"></span>
         </div>
         <div class="results" id="results-table-2"></div>
+        <div>
+        <canvas id="my-chart-2" class="chart-canvas"></canvas>
+        </div>
 </div>
                 </td>
             </tr>

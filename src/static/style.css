@@ -133,3 +133,8 @@ h1 {
     font-size: 24px;
     margin-bottom: 20px;
 }
+
+.chart-canvas {
+    width: 40%;
+    display: none;
+}

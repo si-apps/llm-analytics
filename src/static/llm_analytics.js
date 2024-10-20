@@ -1,6 +1,7 @@
-let db = null
-let sqls = [null, null, null]
+let db = null;
+let sqls = [null, null, null];
 let _visitor_id = null;
+let charts = [null, null, null];
 
 async function create_db(file_url, file_name) {
     const db = await window.duck_db.connect();
@@ -104,6 +105,9 @@ async function handleKeyDown(event) {
 
 function clear_results_and_status(index) {
     document.getElementById(`results-table-${index}`).outerHTML = `<div class=\"results\" id=\"results-table-${index}\"></div>`
+    if (charts[index] != null)
+        charts[index].destroy();
+    document.getElementById(`my-chart-${index}`).display = 'None';
     set_status(index, "")
     if (index < sqls.length - 1) {
         document.getElementById(`drill_down-${index}`).style.display = 'None';
@@ -186,7 +190,7 @@ async function run_query(index) {
     let previous_sql = sql
     try {
         let text_data = await db.query(sql);
-        show_data(index, text_data)
+        show_data(index, text_data, question)
         return sql;
     } catch (e) {
         previous_error = e.toString()
@@ -200,7 +204,7 @@ async function run_query(index) {
         let retry_sql = await retry_response.text();
         try {
             let text_data = await db.query(retry_sql);
-            show_data(index, text_data)
+            show_data(index, text_data, question)
             return retry_sql;
         } catch (e) {
             set_status(index, e.toString())
@@ -209,21 +213,73 @@ async function run_query(index) {
     return null
 }
 
-function show_data(index, text_data) {
+function show_data(index, text_data, question) {
     try {
 
         let json_data = JSON.parse(text_data);
 
-        new Tabulator(`#results-table-${index}`, {
+        let chart_show = false;
+        if (question.toLowerCase().includes("pie")) {
+            chart_show =  show_pie_data(index, json_data);
+            document.getElementById(`my-chart-${index}`).style.display = 'block';
+        }
+        if (!chart_show)
+            show_table_data(index, json_data);
+    } catch (e) {
+        set_status(index, e)
+    }
+}
+
+function show_table_data(index, json_data) {
+    new Tabulator(`#results-table-${index}`, {
             data: json_data,
             autoColumns: true,
             pagination: "local",
             paginationSize: 20,
             layout: "fitColumns"
         });
-    } catch (e) {
-        set_status(index, e)
+}
+
+function get_chart_columns(json_data) {
+    if (json_data.length === 0)
+        return []
+    let label_col = null
+    let value_col = null
+    for (let key in json_data[0]) {
+        if (label_col == null && typeof json_data[0][key] == "string")
+            label_col = key
+        if (value_col == null && typeof json_data[0][key] == "number")
+            value_col = key
     }
+    if (label_col == null || value_col == null)
+        return []
+    return [label_col, value_col]
+}
+
+function show_pie_data(index, json_data) {
+    let canvas = document.getElementById(`my-chart-${index}`)
+    if (json_data.length === 0)
+        return false
+    let chart_cols = get_chart_columns(json_data)
+    if (chart_cols.length === 0)
+        return false;
+
+    const labels = json_data.map(item => item[chart_cols[0]]);
+    const values = json_data.map(item => item[chart_cols[1]]);
+    charts[index] = new Chart(canvas, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values
+            }]
+        },
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,
+        }
+    });
+    return true
 }
 
 async function drill_down(index) {
