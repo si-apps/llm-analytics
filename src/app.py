@@ -17,7 +17,7 @@ app = Flask(__name__, static_url_path="", static_folder="static")
 Compress(app)
 visitors_limit = VisitorsLimit(100, 5, 1800)
 
-_VERSION = "0.0.3"
+_VERSION = "0.0.4"
 
 
 @app.route('/ping')
@@ -60,7 +60,11 @@ def _question_to_sql():
     previous_error = request.args.get("previous_error", None)
     prompt = get_prompt(table_name, question, metadata, sample_data, distinct_values, hint, previous_sql, previous_error)
     model_id = request.args["model_id"]
-    sql = invoke_llm(prompt, model_id)
+    try:
+        sql = invoke_llm(prompt, model_id)
+    except Exception as e:
+        logging.exception("Error invoking LLM")
+        return jsonify({"error": str(e)})
     sql = fix_sql(sql)
     logging.info("Invoke details: %s", {
         "question": question,

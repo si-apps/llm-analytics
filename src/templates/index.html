@@ -1,29 +1,35 @@
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>{{title}}</title>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <meta name="description" content="{{title}}}">
-        <meta name="keywords" content="Free,Text,Analytics,LLM,CSV,JSON">
-        <meta property="og:title" content="{{title}}}">
-        <meta property="og:description" content="{{title}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Analytics - Secure Data Analysis</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <title>{{title}}</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="{{title}}}">
+    <meta name="keywords" content="Free,Text,Analytics,LLM,CSV,JSON">
+    <meta property="og:title" content="{{title}}}">
+    <meta property="og:description" content="{{title}}">
 
-        <meta name="twitter:title" content="{{title}}">
-        <meta name="twitter:description" content="{{title}}">
+    <meta name="twitter:title" content="{{title}}">
+    <meta name="twitter:description" content="{{title}}">
 
 
-        <meta name="twitter:card" content="{{title}}">
+    <meta name="twitter:card" content="{{title}}">
 
-        <meta property="og:url" content="{{url}}">
-        <meta name="twitter:url" content="{{url}}">
+    <meta property="og:url" content="{{url}}">
+    <meta name="twitter:url" content="{{url}}">
 
-        <link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="llm_analytics.js"></script>
-        <link href="style.css" rel="stylesheet">
-        <script type="module" src="llm_analytics_module.js"></script>
-        <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
+    <link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="llm_analytics.js"></script>
+    <link href="style.css" rel="stylesheet">
+    <script type="module" src="llm_analytics_module.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
 {% if recaptcha_key != "" %}
     {% block captcha_content %}
 <script src="https://www.google.com/recaptcha/api.js?render={{recaptcha_key}}"></script>
@@ -66,93 +72,216 @@
         </script>
     {% endblock analytics_content %}
 {% endif %}
-    </head>
-<body>
-    <div class="container">
-        <p>
-            Upload <span class="important">CSV or JSON Lines files</span> and analyze them directly
-            in your browser using <span class="highlight">simple, free-text prompts</span>. The system uses
-            <span class="highlight">advanced language models (LLM)</span> to convert your requests into
-            <span class="important">database queries</span> automatically.
+</head>
+<body class="min-h-screen bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto mb-12 text-center">
+        <h1 class="text-4xl font-bold mb-4">Analyze Your Data Securely with AI</h1>
+        <p class="text-lg text-gray-600 mb-8">
+            Upload your files and get instant insights through natural language questions -
+            all processed locally in your browser
         </p>
-        <p>
-            These queries are run <span class="important">locally within your browser</span>, eliminating the need for
-            an external database. Your file stays private—only <span class="important">metadata and sample data</span>
-            are sent to the LLM.
-        </p>
-        <p>
-            This approach not only ensures <span class="highlight">privacy</span> but also
-            <span class="highlight">saves resources</span>, as everything runs in the browser. It enables
-            <span class="highlight">quick and efficient analysis</span> of large files
-            <span class="important">without technical expertise</span>.
-        </p>
-    </div>
-    <input onchange="file_change()" type="file" id="file" name="file" /><label id="record_count"></label>
-    <div class="metadata" id="metadata-0"></div>
-    <textarea class="search-box" id="question_input-0" rows="3" onkeydown="handleKeyDown(event)"></textarea>
-    <br/>
 
-    <span style="display:{% if advanced %}block{% else %}none{% endif %};">
-        <br/>
-        <label>Samples:<input style="width: 30px" type="number" id="num_samples" value="5"/></label>
-        <label>Model:<select style="width: 120px" id="model_id">
-            <option value="anthropic.claude-instant-v1" selected="selected">Claude Instant</option>
-            <option value="ai21.jamba-instruct-v1:0">Jamba Instruct</option>
-        </select></label>
-        <label>Hint:<input style="width: 30%" type="text" id="hint" value=""/></label>
-        <label>version: {{version}}</label>
-    </span>
-    <div class="status-bar">
-        <span id="status-0" class="status-text"></span>
-        <span id="loader-0" class="loader"></span>
+        <!-- Feature Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="card text-center p-6">
+                <i data-feather="shield" class="mx-auto h-12 w-12 text-blue-500 mb-4"></i>
+                <h3 class="text-lg font-semibold mb-2">Secure & Private</h3>
+                <p class="text-gray-600">All data stays in your browser. Nothing is sent to external servers.</p>
+            </div>
+
+            <div class="card text-center p-6">
+                <i data-feather="database" class="mx-auto h-12 w-12 text-blue-500 mb-4"></i>
+                <h3 class="text-lg font-semibold mb-2">Handle Large Files</h3>
+                <p class="text-gray-600">Process millions of records efficiently without size limits.</p>
+            </div>
+
+            <div class="card text-center p-6">
+                <i data-feather="message-square" class="mx-auto h-12 w-12 text-blue-500 mb-4"></i>
+                <h3 class="text-lg font-semibold mb-2">Natural Conversations</h3>
+                <p class="text-gray-600">Ask follow-up questions and dive deeper into your data.</p>
+            </div>
+        </div>
+
+        <!-- File Upload Section -->
+        <div class="card mb-8">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-2">Upload Your File</h2>
+                <p class="text-gray-600 mb-4">Drag and drop your file or click to browse</p>
+
+                <div id="dropZone" class="border-2 border-dashed rounded-lg p-12 transition-colors border-gray-300">
+                    <div class="text-center">
+                        <i data-feather="upload" class="mx-auto h-12 w-12 text-gray-400 mb-4"></i>
+                        <p id="uploadText" class="text-lg font-medium">Drop your file here, or</p>
+                        <label for="file_input" class="text-blue-500 hover:text-blue-600 cursor-pointer">browse file</label>
+                        <input type="file" id="file_input" class="hidden">
+                        <span id="status-file" class="status-text"></span>
+                        <span id="loader-file" class="loader"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Question Interface -->
+        <div class="card mb-8">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-2">Ask Questions About Your Data</h2>
+                <p class="text-gray-600 mb-4">Use natural language to explore your data</p>
+
+                <div class="space-y-5">
+                    <div id="metadata-0"></div>
+                    <textarea id="question_input-0"
+                        placeholder="Ask your question here... (e.g., 'What are the top selling products?')"
+                        class="w-full h-24 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        onkeydown="handleKeyDown(event)"
+                    ></textarea>
+                    <button class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+                            onclick="ask_question(0)">
+                        Ask Question
+                    </button>
+                    <div class="status-bar">
+                        <span id="status-0" class="status-text"></span>
+                        <span id="loader-0" class="loader"></span>
+                    </div>
+
+                    <span style="display:{% if advanced %}block{% else %}none{% endif %};">
+                        <br/>
+                        <label>Samples:<input style="width: 30px" type="number" id="num_samples" value="5"/></label>
+                        <label>Model:<select style="width: 120px" id="model_id">
+                            <option value="anthropic.claude-instant-v1" selected="selected">Claude Instant</option>
+                            <option value="ai21.jamba-instruct-v1:0">Jamba Instruct</option>
+                        </select></label>
+                        <label>Hint:<input style="width: 30%" type="text" id="hint" value=""/></label>
+                        <label>version: {{version}}</label>
+                    </span>
+                </div>
+                <br/>
+                <div class="space-y-5">
+                    <div id="results-table-0"></div>
+                    <div>
+                    <canvas id="my-chart-0" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-8 hidden" id="drill_down-0">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-2">Drill Down Your Data</h2>
+                <p class="text-gray-600 mb-4">Use natural language to explore your data</p>
+
+                <div class="space-y-5">
+                    <div id="metadata-1"></div>
+                    <textarea id="question_input-1"
+                        placeholder="Ask your question here... (e.g., 'What are the top selling products?')"
+                        class="w-full h-24 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        onkeydown="handleKeyDown(event)"
+                    ></textarea>
+                    <button class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+                            onclick="ask_question(1)">
+                        Ask Question
+                    </button>
+                    <div class="status-bar">
+                        <span id="status-1" class="status-text"></span>
+                        <span id="loader-1" class="loader"></span>
+                    </div>
+                </div>
+                <br/>
+                <div class="space-y-5">
+                    <div id="results-table-1"></div>
+                    <div>
+                    <canvas id="my-chart-1" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-8 hidden" id="drill_down-1">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-2">Drill Down Your Data</h2>
+                <p class="text-gray-600 mb-4">Use natural language to explore your data</p>
+
+                <div class="space-y-4">
+                    <div id="metadata-2"></div>
+                    <textarea id="question_input-2"
+                        placeholder="Ask your question here... (e.g., 'What are the top selling products?')"
+                        class="w-full h-24 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        onkeydown="handleKeyDown(event)"
+                    ></textarea>
+                    <button class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+                            onclick="ask_question(2)">
+                        Ask Question
+                    </button>
+                    <div class="status-bar">
+                        <span id="status-2" class="status-text"></span>
+                        <span id="loader-2" class="loader"></span>
+                    </div>
+                </div>
+                <br/>
+                <div class="space-y-4">
+                    <div id="results-table-2"></div>
+                    <div>
+                    <canvas id="my-chart-2" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="results" id="results-table-0"></div>
-    <div>
-    <canvas id="my-chart-0" class="chart-canvas"></canvas>
-    </div>
-    <br/>
-    <table class="sub-results">
-        <tr>
-            <td class="sub-results-drill-down-button">
-                <button id="drill_down_button-0" class="plus-button" style="display: none" onclick="drill_down(0)">+</button>
-            </td>
-            <td class="sub-results-results">
-    <div id="drill_down-0" style="display: none;">
-        <div class="metadata" id="metadata-1"></div>
-        <textarea class="search-box" id="question_input-1" rows="3" onkeydown="handleKeyDown(event)"></textarea>
-        <div class="status-bar">
-            <span id="status-1" class="status-text"></span>
-            <span id="loader-1" class="loader"></span>
-        </div>
-        <div class="results" id="results-table-1"></div>
-        <br/>
-        <div>
-        <canvas id="my-chart-1" class="chart-canvas"></canvas>
-        </div>
-        <table class="sub-results">
-            <tr>
-                <td class="sub-results-drill-down-button">
-                    <button id="drill_down_button-1" class="plus-button" style="display: none" onclick="drill_down(1)">+</button>
-                </td>
-                <td class="sub-results-results">
-<div id="drill_down-1" style="display: none;">
-        <div class="metadata" id="metadata-2"></div>
-        <textarea class="search-box" id="question_input-2" rows="3" onkeydown="handleKeyDown(event)"></textarea>
-        <div class="status-bar">
-            <span id="status-2" class="status-text"></span>
-            <span id="loader-2" class="loader"></span>
-        </div>
-        <div class="results" id="results-table-2"></div>
-        <div>
-        <canvas id="my-chart-2" class="chart-canvas"></canvas>
-        </div>
-</div>
-                </td>
-            </tr>
-        </table>
-    </div>
-            </td>
-        </tr>
-    </table>
+
+
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+
+        // File Drop Zone Logic
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('file_input');
+        const uploadText = document.getElementById('uploadText');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropZone.classList.add('drag-active');
+        }
+
+        function unhighlight() {
+            dropZone.classList.remove('drag-active');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFileSelect, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                dropZone.classList.add('file-selected');
+                uploadText.textContent = `${files[0].name} selected`;
+                select_file(files[0]);
+            }
+        }
+    </script>
 </body>
 </html>

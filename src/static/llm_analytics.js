@@ -18,15 +18,17 @@ async function create_db(file_url, file_name) {
         let load_query = `CREATE TABLE ${table_name} AS
                     SELECT * FROM read_csv("${table_name}", auto_detect=true, sample_size=100000)`
         await db.query(load_query);
-        let record_count = JSON.parse(await db.query(`SELECT COUNT(1) AS cnt FROM ${table_name}`))[0]["cnt"]
-        document.getElementById("record_count").innerText = "(" +
-            record_count.toLocaleString() + " records)";
     }
     else {
         console.log("Unsupported file format: " + file_name)
     }
     console.log("DB Initialized")
     return db
+}
+
+async function get_file_record_count(){
+    let table_name = get_table_name(0);
+    return JSON.parse(await db.query(`SELECT COUNT(1) AS cnt FROM ${table_name}`))[0]["cnt"]
 }
 
 async function create_metadata_buttons(index) {
@@ -46,7 +48,7 @@ function clear_metadata_buttons() {
 }
 
 function column_click(index, column_name) {
-    if (column_name.includes(" ")) {
+    if (column_name.includes(" ") || column_name.includes("-")) {
         column_name = `"${column_name}"`
     }
     document.getElementById(`question_input-${index}`).value += column_name + " ";
@@ -59,18 +61,25 @@ function update_loader(index, visible) {
 
 async function file_change() {
     clear_metadata_buttons();
+    set_status("file", "")
     for (let i = 0; i < 3; i++) {
         clear_results_and_status(i);
     }
-    let file = document.getElementById("file").files[0];
+    let file = document.getElementById("file_input").files[0];
+    await select_file(file);
+}
+
+async function select_file(file){
     let url = (window.URL || window.webkitURL).createObjectURL(file);
     try {
-        update_loader(0, true);
+        update_loader("file", true);
         db = await create_db(url, file.name);
+        let record_count = await get_file_record_count()
+        uploadText.textContent = `${file.name} selected (${record_count.toLocaleString()} records)`;
         await create_metadata_buttons(0)
     }
     finally {
-        update_loader(0, false);
+        update_loader("file", false);
     }
 }
 
@@ -79,27 +88,31 @@ async function handleKeyDown(event) {
         event.preventDefault();
 
         let index = parseInt(event.target.id[event.target.id.length - 1]);
-        let table_name = get_table_name(index);
-        clear_results_and_status(index)
+        await ask_question(index);
+    }
+}
 
-        if (document.getElementById("file").files.length === 0) {
-            set_status(index, "Please upload a file first");
-            return
-        }
-        if (db == null) {
-            set_status(index, "Database not initialized. Please try again in a few seconds");
-            return null
-        }
-        try {
-            update_loader(index, true);
-            sqls[index] = await run_query(index, table_name);
-        }
-        finally {
-            update_loader(index, false);
-        }
-        if ((sqls[index] != null) && (index < sqls.length - 1)) {
-            document.getElementById(`drill_down_button-${index}`).style.display = 'block';
-        }
+async function ask_question(index) {
+    let table_name = get_table_name(index);
+    clear_results_and_status(index)
+
+    if (document.getElementById("file_input").files.length === 0) {
+        set_status("file", "Please upload a file first");
+        return
+    }
+    if (db == null) {
+        set_status(index, "Database not initialized. Please try again in a few seconds");
+        return null
+    }
+    try {
+        update_loader(index, true);
+        sqls[index] = await run_query(index, table_name);
+    }
+    finally {
+        update_loader(index, false);
+    }
+    if ((sqls[index] != null) && (index < sqls.length - 1)) {
+        await drill_down(index);
     }
 }
 
@@ -111,7 +124,6 @@ function clear_results_and_status(index) {
     set_status(index, "")
     if (index < sqls.length - 1) {
         document.getElementById(`drill_down-${index}`).style.display = 'None';
-        document.getElementById(`drill_down_button-${index}`).style.display = 'none';
     }
 }
 
