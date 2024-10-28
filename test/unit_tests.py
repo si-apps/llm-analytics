@@ -88,6 +88,15 @@ class TestVisitorsLimit:
         assert vl.visit("1")
         assert vl.visit("4")
 
+    def test_single_visitor_limit(self):
+        vl = VisitorsLimit(5, 2, 2)
+        assert vl.visit("1")
+        assert vl.visit("1")
+        assert not vl.visit("1")
+        sleep(3)
+        assert vl.visit("1")
+
+
 
 class TestFlaskApp:
     def test_ping(self):
@@ -99,5 +108,5 @@ class TestFlaskApp:
         result = app.test_client().get("/")
         assert result.status_code == 200
         html = result.text
-        assert html.startswith("<html") and html.endswith("/html>")
+        assert html.startswith("<!DOCTYPE html>") and html.endswith("/html>")
 
