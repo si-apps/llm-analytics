@@ -72,6 +72,13 @@ HAVING COUNT(DISTINCT "region-code") > 0""")
         assert (fix_sql('SELECT * FROM my_table ORDER BY "customer-name" LIMIT 5')
                 == 'SELECT * FROM my_table ORDER BY "customer-name" LIMIT 5')
 
+    def test_remove_semicolon(self):
+        assert fix_sql("SELECT * FROM my_table;") == "SELECT * FROM my_table"
+        assert fix_sql("SELECT * FROM my_table;    ") == "SELECT * FROM my_table"
+        assert fix_sql("SELECT * FROM my_table    ;    ") == "SELECT * FROM my_table"
+        assert fix_sql("SELECT *\nFROM my_table    ;   \n    ") == "SELECT *\nFROM my_table"
+        assert fix_sql("SELECT * FROM my_table\n    ;   \n    ") == "SELECT * FROM my_table"
+
 
 class TestVisitorsLimit:
     def test_visitors_limit(self):
