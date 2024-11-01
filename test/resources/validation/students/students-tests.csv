@@ -1,0 +1,4 @@
+name,question,answer
+count,how many unique students are there?,[[6607]]
+min-max,Give me the min and max attendance,"[[60, 100]]"
+avg-male,What is the average score from male students?,[['Oceania']]
