@@ -9,3 +9,4 @@ multiple conditions,show a list of unique customers from south who bought P001 a
 filter by payment method,How many sales were paid with paypal?,[[3357]]
 paypal payment in august,how many order id's were payed by paypal on august 2024?,[[403]]
 product quantity month  january per region per payment,what is a quantity of widget E that was sold on january to midwest and was payed by bank transfer?,[[54]]
+מוצר הנמכר ביותר,איזה מוצר נמכר הכי הרבה בכמות?,[['Widget E']]
