@@ -117,13 +117,19 @@ async function ask_question(index) {
 }
 
 function clear_results_and_status(index) {
-    document.getElementById(`results-table-${index}`).outerHTML = `<div class=\"results\" id=\"results-table-${index}\"></div>`
-    if (charts[index] != null)
-        charts[index].destroy();
-    document.getElementById(`my-chart-${index}`).display = 'None';
-    set_status(index, "")
-    if (index < sqls.length - 1) {
-        document.getElementById(`drill_down-${index}`).style.display = 'None';
+    for (let i = index; i < charts.length; i++) {
+        document.getElementById(`results-table-${i}`).outerHTML = `<div class=\"results\" id=\"results-table-${i}\"></div>`
+        if (charts[i] != null)
+            charts[i].destroy();
+        document.getElementById(`my-chart-${i}`).display = 'None';
+        set_status(index, "")
+        if (i < sqls.length - 1) {
+            document.getElementById(`drill_down-${i}`).style.display = 'None';
+        }
+        if (i > index) {
+            sqls[i] = null;
+            document.getElementById(`question_input-${i}`).value = "";
+        }
     }
 }
 
