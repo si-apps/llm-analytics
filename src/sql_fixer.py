@@ -12,6 +12,7 @@ _DIALECT = "duckdb"
 def fix_sql(sql: str) -> str:
     sql = _convert_to_duckdb(sql)
     sql = _add_aliases(sql)
+    sql = _remove_semicolon(sql)
     return sql
 
 
@@ -22,6 +23,10 @@ def _convert_to_duckdb(sql: str) -> Optional[str]:
     except SQLBaseError as e:
         logging.error(f"Error converting SQL: {e}")
         return None
+
+def _remove_semicolon(sql: str) -> str:
+    return re.sub(r'\s*;\s*$', '', sql, flags=re.MULTILINE)
+
 
 
 def _update_col_name(name: str) -> str:
