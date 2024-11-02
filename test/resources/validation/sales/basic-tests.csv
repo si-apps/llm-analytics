@@ -8,3 +8,4 @@ date and sum,what are total sales for the entire month january 24?,[[359535.06]]
 multiple conditions,show a list of unique customers from south who bought P001 and paid more 88 $ or more by Bank Transfer on january. Return only customer ids order by customer id,"[['C3475'],['C641']]"
 filter by payment method,How many sales were paid with paypal?,[[3357]]
 paypal payment in august,how many order id's were payed by paypal on august 2024?,[[403]]
+product quantity month  january per region per payment,what is a quantity of widget E that was sold on january to midwest and was payed by bank transfer?,[[54]]
