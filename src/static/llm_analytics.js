@@ -232,14 +232,31 @@ async function run_query(index) {
 }
 
 function show_data(index, text_data, question) {
+    function _get_chart_type(question) {
+        if (question.toLowerCase().includes("pie")) {
+            return "pie"
+        }
+        else if (question.toLowerCase().includes("line chart")) {
+            return "line"
+        }
+        else if (question.toLowerCase().includes("bar chart")) {
+            return "bar"
+        }
+        else {
+            return null
+        }
+    }
+
     try {
 
         let json_data = JSON.parse(text_data);
 
         let chart_show = false;
-        if (question.toLowerCase().includes("pie")) {
-            chart_show =  show_pie_data(index, json_data);
-            document.getElementById(`my-chart-${index}`).style.display = 'block';
+        let chart_type = _get_chart_type(question);
+        if (chart_type != null) {
+            chart_show =  show_chart_data(index, json_data, chart_type);
+            if (chart_show)
+                document.getElementById(`my-chart-${index}`).style.display = 'block';
         }
         if (!chart_show)
             show_table_data(index, json_data);
@@ -259,36 +276,45 @@ function show_table_data(index, json_data) {
 }
 
 function get_chart_columns(json_data) {
+    function _find_col_by_type(data, col_type) {
+        for (let key in line) {
+            if (typeof line[key] === col_type)
+                return key
+        }
+        return null
+    }
     if (json_data.length === 0)
         return []
-    let label_col = null
-    let value_col = null
-    for (let key in json_data[0]) {
-        if (label_col == null && typeof json_data[0][key] == "string")
-            label_col = key
-        if (value_col == null && typeof json_data[0][key] == "number")
-            value_col = key
-    }
-    if (label_col == null || value_col == null)
+    let line = json_data[0]
+    if (line.length <= 1)
         return []
-    return [label_col, value_col]
+    let label_col = _find_col_by_type(line, "string")
+    let value_col = _find_col_by_type(line, "number")
+
+    if (label_col == null || value_col == null) {
+        let keys = Object.keys(line);
+        return [keys[0], keys[1]];
+    }
+    else
+        return [label_col, value_col]
 }
 
-function show_pie_data(index, json_data) {
+function show_chart_data(index, json_data, chart_type) {
     let canvas = document.getElementById(`my-chart-${index}`)
     if (json_data.length === 0)
         return false
     let chart_cols = get_chart_columns(json_data)
     if (chart_cols.length === 0)
         return false;
-
+    console.log(chart_cols);
     const labels = json_data.map(item => item[chart_cols[0]]);
     const values = json_data.map(item => item[chart_cols[1]]);
     charts[index] = new Chart(canvas, {
-        type: 'pie',
+        type: chart_type,
         data: {
             labels: labels,
             datasets: [{
+                label: chart_cols[0],
                 data: values
             }]
         },

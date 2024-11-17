@@ -127,7 +127,7 @@ h1 {
 }
 
 .chart-canvas {
-    width: 40%;
+    width: 90%;
     display: none;
 }
 .drag-active {

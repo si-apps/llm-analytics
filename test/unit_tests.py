@@ -32,8 +32,8 @@ class TestFixSql:
                 == "SELECT customer FROM my_table")
 
     def test_column_with_quotes(self):
-        assert (fix_sql('SELECT "customer" FROM my_table')
-                == 'SELECT "customer" AS customer FROM my_table')
+        assert (fix_sql('SELECT "customer name" FROM my_table')
+                == 'SELECT "customer name" AS customer_name FROM my_table')
 
     def test_column_with_quotes_and_space(self):
         assert (fix_sql('SELECT "customer name" FROM my_table')
@@ -78,6 +78,17 @@ HAVING COUNT(DISTINCT "region-code") > 0""")
         assert fix_sql("SELECT * FROM my_table    ;    ") == "SELECT * FROM my_table"
         assert fix_sql("SELECT *\nFROM my_table    ;   \n    ") == "SELECT *\nFROM my_table"
         assert fix_sql("SELECT * FROM my_table\n    ;   \n    ") == "SELECT * FROM my_table"
+
+
+    def test_matching_column_name(self):
+        assert fix_sql("SELECT col1, col2 FROM my_table", {"col1", "col2"}) == "SELECT col1, col2 FROM my_table"
+
+    def test_similar_column_name(self):
+        assert fix_sql("SELECT the_col1, col2 FROM my_table", {"thecol1", "col2"}) == 'SELECT thecol1, col2 FROM my_table'
+
+    def test_similar_column_name_with_order_by(self):
+        assert fix_sql("SELECT the_col1, col2 FROM my_table ORDER BY the_col1", {"thecol1", "col2"}) == \
+               'SELECT thecol1, col2 FROM my_table ORDER BY thecol1'
 
 
 class TestVisitorsLimit:

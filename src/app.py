@@ -15,9 +15,9 @@ from flask_compress import Compress
 
 app = Flask(__name__, static_url_path="", static_folder="static")
 Compress(app)
-visitors_limit = VisitorsLimit(100, 5, 1800)
+visitors_limit = VisitorsLimit(200, 20, 3600)
 
-_VERSION = "0.0.4"
+_VERSION = "0.0.5"
 
 
 @app.route('/ping')
@@ -65,7 +65,7 @@ def _question_to_sql():
     except Exception as e:
         logging.exception("Error invoking LLM")
         return jsonify({"error": str(e)})
-    sql = fix_sql(sql)
+    sql = fix_sql(sql, {m["column_name"] for m in json.loads(metadata)})
     logging.info("Invoke details: %s", {
         "question": question,
         "metadata-columns": [row["column_name"] for row in json.loads(metadata)],

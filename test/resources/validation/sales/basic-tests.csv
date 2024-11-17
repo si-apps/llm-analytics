@@ -11,3 +11,4 @@ paypal payment in august,how many order id's were payed by paypal on august 2024
 product quantity month  january per region per payment,what is the total quantity of widget E that was sold on january to midwest and was payed by bank transfer?,[[54]]
 top selling product,which product is the top seller by total quantity,[['Widget A']]
 product with most sales,which product has the highest number of sales,[['Widget E']]
+per month,give me the total sales per month. Show month number(1-12). round the total to an integer. order by month,"[[(1, 359535), (2, 332127), (3, 352602), (4, 365944), (5, 360587), (6, 360108), (7, 358762), (8, 343677), (9, 157730)]]"

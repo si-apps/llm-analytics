@@ -29,6 +29,8 @@ _HINTS = [
     "Unless explicitly stated otherwise, return ONLY the column(s) specifically requested in the question. "
     "Do not include count or any other columns in the final SELECT statement",
     "Aggregate function calls cannot be nested. For example you CANNOT use MIN(COUNT(*)) or MAX(SUM(column_name))",
+    "In GROUP BY it is impossible to use column aliases, use column index instead",
+    "When using GROUP BY, all columns in the SELECT statement must be in the GROUP BY clause",
 ]
 
 

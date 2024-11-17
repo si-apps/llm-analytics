@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Optional
+from typing import Optional, List, Generator, Tuple, Set, Dict
 
 import sqlfluff
 from sqlfluff.api import APIParsingError
@@ -9,9 +9,9 @@ from sqlfluff.core import SQLBaseError
 _DIALECT = "duckdb"
 
 
-def fix_sql(sql: str) -> str:
+def fix_sql(sql: str, column_names: Set[str] = None) -> str:
     sql = _convert_to_duckdb(sql)
-    sql = _add_aliases(sql)
+    sql = _verify_columns_and_add_aliases(sql, column_names if column_names else set())
     sql = _remove_semicolon(sql)
     return sql
 
@@ -45,92 +45,114 @@ def _create_alias_for_exp(exp: str) -> str:
                 result += "_"
         else:
             result += c.lower()
-    return result
+    return _update_col_name(result)
 
 
-def _add_aliases(sql: str) -> Optional[str]:
+def _verify_columns_and_add_aliases(sql: str, column_names: Set[str]) -> Optional[str]:
     try:
         parse_tree = sqlfluff.parse(sql, dialect=_DIALECT)
     except APIParsingError as e:
         logging.error(f"SQL: {sql}\nError parsing SQL: {e}")
         return sql
+    sql_statement = None
+    for s in parse_tree["file"] if isinstance(parse_tree["file"], list) else [parse_tree["file"]]:
+        if "statement" in s and "select_statement" in s["statement"]:
+            sql_statement = s["statement"]["select_statement"]
+            break
+        if "statement" in s and "with_compound_statement" in s["statement"]:
+            sql_statement = s["statement"]["with_compound_statement"]
+            break
+    if sql_statement is None:
+        return sql
+    renamed_cols: Dict[str, str] = {}
+    for e in _get_elements(parse_tree, "column_reference", recursive=True):
+        _fix_column_name(e[1], column_names, renamed_cols)
+    if isinstance(sql_statement, dict):
+        sql_statement = [{k: sql_statement[k]} for k in sql_statement]
 
-    try:
-        select_clause = None
-        order_by_clause = None
-        for s in parse_tree["file"] if isinstance(parse_tree["file"], list) else [parse_tree["file"]]:
-            if "statement" in s and "select_statement" in s["statement"]:
-                select_clause = s["statement"]["select_statement"]
-                if isinstance(select_clause, list):
-                    for c in select_clause:
-                        if "select_clause" in c:
-                            select_clause = c["select_clause"]
-                        if "orderby_clause" in c:
-                            order_by_clause = c["orderby_clause"]
-                else:
-                    select_clause = select_clause["select_clause"]
-        if select_clause is None:
-            return sql
-        select_clause_elements = []
-        for child in select_clause:
-            if isinstance(child, dict) and "select_clause_element" in child:
-                el = child["select_clause_element"]
-            elif child == "select_clause_element":
-                el = select_clause[child]
-            else:
-                continue
-            select_clause_elements.append(el)
-        idx = 0
-        for e in select_clause_elements:
+    select_clause = _get_clause(sql_statement, "select")
+    for e_name, e in _get_elements(select_clause):
+        if e_name == "select_clause_element":
             if "alias_expression" not in e:
-                name = None
                 if "column_reference" in e:
-                    if "quoted_identifier" in e["column_reference"]:
-                        name = e["column_reference"]["quoted_identifier"]
-                elif "wildcard_expression" in e:
-                    continue
-                else:
-                    idx += 1
-                    name = _create_alias_for_exp(_convert_to_text(e))
-                if name is not None:
-                    e["whitespace"] = ' '
-                    e["alias_expression"] = {
-                            "naked_identifier": {
-                                'keyword': 'AS',
-                                'whitespace': ' ',
-                                "simple_identifier": name,
-                            }
-                    }
-        renamed_cols = set()
-        for e in [e for e in select_clause_elements if "alias_expression" in e]:
-            if "naked_identifier" in e["alias_expression"]:
-                if isinstance(e["alias_expression"]["naked_identifier"], str):
-                    name = e["alias_expression"]["naked_identifier"]
-                else:
-                    name = e["alias_expression"]["naked_identifier"]["simple_identifier"]
-            elif "quoted_identifier" in e["alias_expression"]:
-                name = e["alias_expression"]["quoted_identifier"]
+                    name = _get_name(e["column_reference"])
+                    new_name = _update_col_name(name)
+                    if name != new_name:
+                        _update_alias(e, new_name)
+                elif "wildcard_expression" not in e:
+                    _update_alias(e, _create_alias_for_exp(_convert_to_text(e)))
             else:
-                assert False
-            renamed_cols.add(name)
-            name = _update_col_name(name)
-            e["alias_expression"] = {
-                "naked_identifier": {
-                    'keyword': 'AS',
-                    'whitespace': ' ',
-                    "simple_identifier": name,
-                }
+                name = _get_name(e["alias_expression"])
+                new_name = _update_col_name(name)
+                if name != new_name:
+                    renamed_cols[name] = new_name
+                    _update_alias(e, new_name)
+    order_by = _get_clause(sql_statement, "orderby")
+    for e in order_by if order_by else []:
+        if isinstance(e, dict) and "column_reference" in e:
+            name = _get_name(e["column_reference"])
+            if name in renamed_cols:
+                e["column_reference"] = _update_col_name(_convert_to_text(e["column_reference"]))
+
+    return _convert_to_text(parse_tree)
+
+def _update_alias(e: dict, name: str):
+    if "alias_expression" not in e:
+        e["whitespace"] = ' '
+    e["alias_expression"] = {
+            "naked_identifier": {
+                'keyword': 'AS',
+                'whitespace': ' ',
+                "simple_identifier": name,
             }
-        if order_by_clause:
-            for e in order_by_clause:
-                if isinstance(e, dict) and "column_reference" in e:
-                    name = _convert_to_text(e["column_reference"])
-                    if name in renamed_cols:
-                        e["column_reference"] = _update_col_name(_convert_to_text(e["column_reference"]))
-        return _convert_to_text(parse_tree)
-    except SQLBaseError as e:
-        logging.error(f"SQL: {sql}\nError converting SQL: {e}")
-        return None
+    }
+
+def _get_clause(clause: list, name: str):
+    for c in clause:
+        if f"{name}_clause" in c:
+            return c[f"{name}_clause"]
+    return None
+
+def _get_name(e: dict) -> str:
+    if "naked_identifier" in e:
+        return e["naked_identifier"]
+    elif "quoted_identifier" in e:
+        return e["quoted_identifier"].strip('"')
+    else:
+        raise ValueError(f"Unexpected column reference: {e}")
+
+
+def _get_elements(clause, name: str = None, recursive: bool = False) ->  Generator[Tuple[str, any], None, None]:
+    if isinstance(clause, dict):
+        for k, v in clause.items():
+            if name is None or name == k:
+                yield k, v
+            if recursive:
+                for e in _get_elements(v, name, recursive):
+                    yield e
+    elif isinstance(clause, list):
+        for e in clause:
+            for k, v in e.items():
+                if name is None or name == k:
+                    yield k, v
+                if recursive:
+                    for ek in _get_elements(v, name, recursive):
+                        yield ek
+
+def _fix_column_name(col_ref: dict, cols: Set[str], renamed_cols: Dict[str, str]):
+    if len(cols) == 0:
+        return
+    if "naked_identifier" in col_ref:
+        col_name = col_ref["naked_identifier"]
+        if not col_name in cols:
+            for c in cols:
+                if _remove_special_chars(c) == _remove_special_chars(col_name):
+                    col_ref["naked_identifier"] = c
+                    renamed_cols[col_name] = c
+                    break
+
+def _remove_special_chars(name: str) -> str:
+    return re.sub(r'[^a-zA-Z0-9]', '', name)
 
 
 def _convert_to_text(parse_tree: dict) -> str:
