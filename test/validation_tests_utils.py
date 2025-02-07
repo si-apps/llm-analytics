@@ -8,7 +8,7 @@ import duckdb
 
 from question_to_sql import get_prompt
 from sql_fixer import fix_sql
-from utils import init_creds_from_file, invoke_llm, init_logging
+from utils import invoke_llm
 
 _stats = {
     "passed": 0,
@@ -31,10 +31,12 @@ class ValidationTest(NamedTuple):
     question: str
     answer: list
 
+def get_full_file_name(file: str) -> str:
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), file)
+
 
 def get_test_names(file_name: str, test_group: str, test_name: str = None) -> Generator[ValidationTest, None, None]:
-    full_file_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
-    with open(full_file_name) as f:
+    with open(get_full_file_name(file_name)) as f:
         reader = csv.DictReader(f)
         for row in reader:
             # noinspection PyTypeChecker
@@ -61,7 +63,7 @@ def _data_to_str(data: Iterable) -> str:
 
 def validate_test(test: ValidationTest, file: str, model_id: str = None):
     with duckdb.connect() as con:
-        con.execute(f"CREATE TABLE my_table AS SELECT * FROM read_csv_auto('{file}')")
+        con.execute(f"CREATE TABLE my_table AS SELECT * FROM read_csv_auto('{get_full_file_name(file)}')")
 
         try:
             metadata = list(_fetch_dict(con, "SUMMARIZE my_table"))
