@@ -1,0 +1,53 @@
+name: Run LLM integration Tests
+on: [workflow_dispatch]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read  # To read the repository contents (for `actions/checkout`)
+      id-token: write  # To use OIDC for accessing resources (if needed)
+      actions: read  # Allow the use of actions like `actions/cache`
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Cache virtual environment
+        id: cache-venv
+        uses: actions/cache@v4
+        with:
+          path: .venv  # Cache the virtual environment
+          key: ${{ runner.os }}-llm-venv-${{ hashFiles('requirements.txt', 'test/test.requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-llm-venv-            
+
+      - name: Create virtual environment
+        if: steps.cache-venv.outputs.cache-hit != 'true'  # Only create if cache is missing
+        run: python -m venv .venv
+
+      - name: Install dependencies
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        run: |
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r test/requirements.txt
+          pip install pytest            
+          pip install boto3
+
+      - name: Get AWS Permissions
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/llm-analytics-bedrock-invoke-model
+          aws-region: us-east-1
+
+      - name: Run unit tests
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=src python -m pytest --color=yes test/validation_tests.py
