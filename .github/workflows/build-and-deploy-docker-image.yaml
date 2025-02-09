@@ -23,5 +23,5 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false
+          push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/llm-analytics:latest
