@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 
 from utils import init_logging, init_creds_from_file
