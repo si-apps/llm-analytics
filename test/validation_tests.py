@@ -27,6 +27,9 @@ def test_sales_validation(test: ValidationTest, file: str, model_id: str):
 @pytest.mark.parametrize("test", get_test_names("resources/validation/countries/countries-tests.csv",
                                                 "countries", test_name=None))
 @pytest.mark.parametrize("file", ["resources/validation/countries/countries.csv"])
-# @pytest.mark.parametrize("model_id", ["anthropic.claude-v2"])
+@pytest.mark.parametrize("model_id", [
+    "gemini-2.0-flash",
+    "anthropic.claude-instant-v1",
+])
 def test_countries_validation(test: ValidationTest, file: str, model_id: str = None):
     validate_test(test, file, model_id)
