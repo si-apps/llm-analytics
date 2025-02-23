@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, jsonify
 from question_to_sql import get_prompt
 
 from sql_fixer import fix_sql
-from utils import init_logging, init_creds_from_file, invoke_llm
+from utils import init_logging, invoke_llm, init_env_from_file
 from visitors_limit import VisitorsLimit
 from flask_compress import Compress
 
@@ -59,7 +59,7 @@ def _question_to_sql():
     previous_sql = request.args.get("previous_sql", None)
     previous_error = request.args.get("previous_error", None)
     prompt = get_prompt(table_name, question, metadata, sample_data, distinct_values, hint, previous_sql, previous_error)
-    model_id = request.args["model_id"]
+    model_id = request.args.get("model_id")
     try:
         sql = invoke_llm(prompt, model_id)
     except Exception as e:
@@ -97,6 +97,6 @@ if __name__ == '__main__':
     logging.getLogger("werkzeug").setLevel('WARNING')
     port = os.environ.get("APP_PORT", 5000)
     logging.info(f"Going to start the app. Version: {_VERSION}. Port: {port}")
-    init_creds_from_file()
+    init_env_from_file(os.environ.get("ENV", "aws.env.list"))
     app.run(host="0.0.0.0", port=port)
 

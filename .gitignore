@@ -1,4 +1,4 @@
-/aws/
+config/**
 /venv/
 do-not-commit/*
 llm-analytics.zip

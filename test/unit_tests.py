@@ -5,7 +5,7 @@ import pytest
 
 from app import app
 from sql_fixer import fix_sql
-from utils import get_project_folder, init_logging
+from utils import get_project_folder, init_logging, invoke_llm
 from visitors_limit import VisitorsLimit
 
 
@@ -90,6 +90,9 @@ HAVING COUNT(DISTINCT "region-code") > 0""")
         assert fix_sql("SELECT the_col1, col2 FROM my_table ORDER BY the_col1", {"thecol1", "col2"}) == \
                'SELECT thecol1, col2 FROM my_table ORDER BY thecol1'
 
+    def test_remove_code_wrap(self):
+        assert fix_sql("```sql\nSELECT 1 AS col```") == "SELECT 1 AS col"
+
 
 class TestVisitorsLimit:
     def test_visitors_limit(self):
@@ -128,3 +131,8 @@ class TestFlaskApp:
         html = result.text
         assert html.startswith("<!DOCTYPE html>") and html.endswith("/html>")
 
+
+class TestUtils:
+    def test_invoke_model_value_error(self):
+        with pytest.raises(ValueError, match="Unknown model_id: unknown"):
+            invoke_llm("", "unknown")
