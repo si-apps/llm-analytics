@@ -69,4 +69,4 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          repository: ${{ secrets.DOCKER_USERNAME }}/llm-analytics
