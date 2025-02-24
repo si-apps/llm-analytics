@@ -10,6 +10,8 @@ _DIALECT = "duckdb"
 
 
 def fix_sql(sql: str, column_names: Set[str] = None) -> str:
+    if sql.startswith("```sql\n") and sql.endswith("```"):
+        sql = sql[7:-3]
     sql = _convert_to_duckdb(sql)
     sql = _verify_columns_and_add_aliases(sql, column_names if column_names else set())
     sql = _remove_semicolon(sql)
