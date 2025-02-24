@@ -12,8 +12,8 @@ A limited preview of the LLM Analytics application can be found [here](https://f
 ### Installation
 
 Prerequisites:
-1. To install the LLM Analytics you need to have a Docker installed on your machine. If you don't have it installed you can download it from [here](https://www.docker.com/products/docker-desktop).
-2. You need to configure the model LLM Analytics will use and configure you env.list configuration file. See the [Configuration](#configuration) section for more details.
+1. To install the LLM Analytics you need to have Docker installed. If you don't have it installed you can download it from [here](https://www.docker.com/products/docker-desktop).
+2. You need to configure the model LLM Analytics will use and configure your env.list configuration file. See the [Configuration](#configuration) section for more details.
 
 This command runs a Docker container using the image `si4apps/llm-analytics` and maps it to the local port `5000`.
 ```bash
@@ -33,7 +33,7 @@ GENIMI_API_KEY=your-api-key
 MODEL_ID=gemini-2.0-flash
 ```
 
-### AWS Bedrock 
+#### AWS Bedrock 
 Example content of env.list:
 ```
 AWS_ACCESS_KEY_ID=your-access-key
