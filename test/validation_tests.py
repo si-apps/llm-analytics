@@ -31,5 +31,5 @@ def test_sales_validation(test: ValidationTest, file: str, model_id: str):
     "gemini-2.0-flash",
     "anthropic.claude-instant-v1",
 ])
-def test_countries_validation(test: ValidationTest, file: str, model_id: str = None):
+def test_countries_validation(test: ValidationTest, file: str, model_id: str):
     validate_test(test, file, model_id)
