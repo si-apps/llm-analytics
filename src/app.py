@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import sys
 from functools import lru_cache
 
 from flask import Flask, render_template, request, jsonify
@@ -18,7 +17,7 @@ app = Flask(__name__, static_url_path="", static_folder="static")
 Compress(app)
 visitors_limit = VisitorsLimit(200, 20, 3600)
 
-_VERSION = sys.argv[1] if len(sys.argv) > 1 else "dev"
+_VERSION = os.environ.get("APP_VERSION", "0.0.0")
 
 
 @app.route('/ping')
