@@ -1,8 +1,10 @@
 import json
 import logging
 import os
+from datetime import datetime, UTC
 from logging.config import fileConfig
 from pathlib import Path
+import http.client
 
 _PROJECT_FOLDER = Path(os.path.dirname(os.path.abspath(__file__))).parent.absolute()
 
@@ -53,7 +55,6 @@ def _invoke_gemini_model(prompt: str, model_id: str) -> str:
     data = {
         "contents": [{"parts": [{"text": prompt}]}]
     }
-    import http.client
     conn = http.client.HTTPSConnection("generativelanguage.googleapis.com")
     endpoint = f"/v1beta/models/{model_id}:generateContent?key=" + api_key
     conn.request("POST", endpoint, body=json.dumps(data), headers=headers)
@@ -64,19 +65,33 @@ def _invoke_gemini_model(prompt: str, model_id: str) -> str:
 
 
 def _invoke_bedrock_model(prompt: str, model_id: str) -> str:
-    logging.info(f"Going to invoke LLM. Model ID: {model_id}")
-    import boto3
-    bedrock_client = boto3.client(service_name='bedrock-runtime')
-    response = bedrock_client.invoke_model(
-        body=_format_model_body(prompt, model_id),
-        modelId=model_id,
-    )
-    response_json = json.loads(response.get("body").read())
+    logging.info(f"Going to invoke Bedrock LLM model. Model id: {model_id}")
+    from botocore.session import Session
+    from botocore.awsrequest import AWSRequest
+    from botocore.auth import SigV4Auth
+
+    session = Session()
+    region = session.get_config_variable("region")
+    host = f"bedrock-runtime.{region}.amazonaws.com"
+    path = f"/model/{model_id}/invoke"
+    service = "bedrock"
+
+    payload = _format_bedrock_model_body(prompt, model_id)
+    request = AWSRequest(method="POST", url=f"https://{host}{path}", data=payload)
+    request.context["payload"] = payload
+    request.context["timestamp"] = datetime.now(UTC)
+    auth = SigV4Auth(session.get_credentials(), service, region)
+    auth.add_auth(request)
+
+    conn = http.client.HTTPSConnection(host)
+    conn.request("POST", path, body=payload, headers=request.headers)
+
+    response_json = json.loads(conn.getresponse().read().decode())
     response_text = _get_response_content(response_json, model_id)
     logging.info(f"Got response from LLM. Response length: {len(response_text)}")
     return response_text
 
-def _format_model_body(prompt: str, model_id: str) -> str:
+def _format_bedrock_model_body(prompt: str, model_id: str) -> str:
     if "claude" in model_id:
         body = {
             'prompt': f"\n\nHuman: {prompt}\nAssistant:",
