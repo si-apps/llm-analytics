@@ -49,11 +49,18 @@ def invoke_llm(prompt: str, model_id: str = None) -> str:
 
 def _invoke_gemini_model(prompt: str, model_id: str) -> str:
     api_key = os.environ["GEMINI_API_KEY"]
-    import google.generativeai as genai
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(model_id)
-    response = model.generate_content(prompt)
-    return response.text
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "contents": [{"parts": [{"text": prompt}]}]
+    }
+    import http.client
+    conn = http.client.HTTPSConnection("generativelanguage.googleapis.com")
+    endpoint = f"/v1beta/models/{model_id}:generateContent?key=" + api_key
+    conn.request("POST", endpoint, body=json.dumps(data), headers=headers)
+    response = conn.getresponse()
+    result = response.read().decode()
+    json_data = json.loads(result)
+    return json_data["candidates"][0]["content"]["parts"][0]["text"]
 
 
 def _invoke_bedrock_model(prompt: str, model_id: str) -> str:

@@ -2,4 +2,3 @@ boto3
 flask
 sqlfluff
 flask-compress
-google-generativeai
