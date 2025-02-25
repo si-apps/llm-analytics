@@ -47,7 +47,14 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/llm-analytics-bedrock-invoke-model
           aws-region: us-east-1
 
-      - name: Run unit tests
+      - name: Run LLM Integration tests
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=src python -m pytest --color=yes test/integration_tests.py
+
+      - name: Run LLM Validation tests
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
