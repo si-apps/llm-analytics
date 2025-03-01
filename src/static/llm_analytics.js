@@ -1,44 +1,62 @@
 let db = null;
+let table_loaded = false;
 let sqls = [null, null, null];
 let _visitor_id = null;
 let charts = [null, null, null];
 
 async function create_db(file_url, file_name) {
-    const db = await window.duck_db.connect();
+    const cnn = await window.duck_db.connect();
     let table_name = get_table_name(0);
-    await db.query("DROP TABLE IF EXISTS " + table_name);
+    table_loaded = false;
+    await cnn.query("DROP TABLE IF EXISTS " + table_name);
     let convert_to_jsonl = false;
     if (file_name.endsWith(".xlsx") || file_name.endsWith(".xls")) {
         file_url = await xlsxToJsonlFile(file_url);
-        console.log("Loading Excel file as JSONL")
-        convert_to_jsonl = true;
+        if (file_url != null) {
+            console.log("Loading Excel file as JSONL")
+            convert_to_jsonl = true;
+        }
+        else {
+            console.log("Error converting Excel file to JSONL")
+        }
     }
     if (file_name.endsWith(".jsonl") || convert_to_jsonl) {
         window.duck_db.registerFileURL(table_name, file_url, 4, false);
          let load_query = `CREATE TABLE ${table_name} AS
                         SELECT * FROM read_json("${table_name}",format=newline_delimited,
                                                 auto_detect=true, sample_size=100000)`
-        await db.query(load_query);
+        await cnn.query(load_query);
+        table_loaded = true;
     }
     else if (file_name.endsWith(".csv")) {
         window.duck_db.registerFileURL(table_name, file_url, 4, false);
         let load_query = `CREATE TABLE ${table_name} AS
                     SELECT * FROM read_csv("${table_name}", auto_detect=true, sample_size=100000)`
-        await db.query(load_query);
+        await cnn.query(load_query);
+        table_loaded = true;
     }
     else {
         console.log("Unsupported file format: " + file_name)
     }
     console.log("DB Initialized")
-    return db
+    return cnn
 }
 
 async function get_file_record_count(){
-    let table_name = get_table_name(0);
-    return JSON.parse(await db.query(`SELECT COUNT(1) AS cnt FROM ${table_name}`))[0]["cnt"]
+    if (!table_loaded)
+        return 0
+    else {
+        let table_name = get_table_name(0);
+        return JSON.parse(await db.query(`SELECT COUNT(1) AS cnt
+                                          FROM ${table_name}`))[0]["cnt"]
+    }
 }
 
 async function create_metadata_buttons(index) {
+    if (!table_loaded) {
+        clear_metadata_buttons()
+        return
+    }
     let metadata = JSON.parse(await db.query(`DESCRIBE ${get_table_name(index)}`));
     let column_names = metadata.map(column => column["column_name"]);
     let html = "";
@@ -100,6 +118,10 @@ async function handleKeyDown(event) {
 }
 
 async function ask_question(index) {
+    if (!table_loaded) {
+        set_status(index, "Please upload a file first");
+        return
+    }
     let table_name = get_table_name(index);
     clear_results_and_status(index)
 
@@ -364,12 +386,11 @@ async function xlsxToJsonlFile(blobUrl) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
 
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
                 const jsonData = XLSX.utils.sheet_to_json(sheet);
+                if (jsonData.length === 0)
+                    resolve(null);
                 const jsonlData = jsonData.map(row => JSON.stringify(row)).join('\n');
-
                 const jsonlBlob = new Blob([jsonlData], { type: "application/json" });
                 const jsonlBlobUrl = URL.createObjectURL(jsonlBlob);
                 resolve(jsonlBlobUrl);
