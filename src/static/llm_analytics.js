@@ -7,14 +7,21 @@ async function create_db(file_url, file_name) {
     const db = await window.duck_db.connect();
     let table_name = get_table_name(0);
     await db.query("DROP TABLE IF EXISTS " + table_name);
-    window.duck_db.registerFileURL(table_name, file_url, 4, false);
-    if (file_name.endsWith(".jsonl")) {
-        let load_query = `CREATE TABLE ${table_name} AS
-                    SELECT * FROM read_json("${table_name}",format =newline_delimited,
-                                            auto_detect=true, sample_size=100000)`
+    let convert_to_jsonl = false;
+    if (file_name.endsWith(".xlsx") || file_name.endsWith(".xls")) {
+        file_url = await xlsxToJsonlFile(file_url);
+        console.log("Loading Excel file as JSONL")
+        convert_to_jsonl = true;
+    }
+    if (file_name.endsWith(".jsonl") || convert_to_jsonl) {
+        window.duck_db.registerFileURL(table_name, file_url, 4, false);
+         let load_query = `CREATE TABLE ${table_name} AS
+                        SELECT * FROM read_json("${table_name}",format=newline_delimited,
+                                                auto_detect=true, sample_size=100000)`
         await db.query(load_query);
     }
     else if (file_name.endsWith(".csv")) {
+        window.duck_db.registerFileURL(table_name, file_url, 4, false);
         let load_query = `CREATE TABLE ${table_name} AS
                     SELECT * FROM read_csv("${table_name}", auto_detect=true, sample_size=100000)`
         await db.query(load_query);
@@ -344,4 +351,38 @@ function init_device_fingerprint() {
         .then(result => {
             _visitor_id = result.visitorId;
         })
+}
+
+async function xlsxToJsonlFile(blobUrl) {
+    try {
+        const response = await fetch(blobUrl);
+        const blob = await response.blob(); // Convert response to a Blob
+        const reader = new FileReader();
+
+        return new Promise((resolve, reject) => {
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+
+                const jsonData = XLSX.utils.sheet_to_json(sheet);
+                const jsonlData = jsonData.map(row => JSON.stringify(row)).join('\n');
+
+                const jsonlBlob = new Blob([jsonlData], { type: "application/json" });
+                const jsonlBlobUrl = URL.createObjectURL(jsonlBlob);
+                resolve(jsonlBlobUrl);
+            };
+
+            reader.onerror = function (error) {
+                reject("Error reading the Blob: " + error);
+            };
+
+            reader.readAsArrayBuffer(blob);
+        });
+    } catch (error) {
+        console.error("Error fetching or processing the Blob URL:", error);
+        throw error;
+    }
 }
