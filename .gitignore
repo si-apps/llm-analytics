@@ -4,3 +4,4 @@ do-not-commit/*
 llm-analytics.zip
 .idea/*
 **/__pycache__/*
+aws/*
