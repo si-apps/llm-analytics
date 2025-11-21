@@ -18,7 +18,7 @@ def set_evn():
 @pytest.mark.parametrize("file", ["resources/validation/sales/sales_data.csv"])
 @pytest.mark.parametrize("model_id", [
     "gemini-2.0-flash",
-    "anthropic.claude-instant-v1",
+    "us.anthropic.claude-haiku-4-5-20251001-v1:0",
 ])
 def test_sales_validation(test: ValidationTest, file: str, model_id: str):
     validate_test(test, file, model_id)
@@ -29,7 +29,7 @@ def test_sales_validation(test: ValidationTest, file: str, model_id: str):
 @pytest.mark.parametrize("file", ["resources/validation/countries/countries.csv"])
 @pytest.mark.parametrize("model_id", [
     "gemini-2.0-flash",
-    "anthropic.claude-instant-v1",
+    "us.anthropic.claude-haiku-4-5-20251001-v1:0",
 ])
 def test_countries_validation(test: ValidationTest, file: str, model_id: str):
     validate_test(test, file, model_id)
