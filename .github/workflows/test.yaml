@@ -41,4 +41,4 @@ jobs:
       - name: Run unit tests
         run: |
           source .venv/bin/activate
-          PYTHONPATH=src python -m pytest --color=yes test/unit_tests.py
+          PYTHONPATH=src python -m pytest --color=yes test/*_unit.py
