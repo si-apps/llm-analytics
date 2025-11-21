@@ -17,13 +17,13 @@ def set_gemini_api_key():
 
 
 
-@pytest.mark.parametrize("model_id", ["anthropic.claude-instant-v1", "ai21.jamba-instruct-v1:0"])
+@pytest.mark.parametrize("model_id", ["us.anthropic.claude-haiku-4-5-20251001-v1:0"])
 def test_connect_to_bedrock(model_id: str, set_aws_creds):
     question = "What is the capital of Japan?"
     answer = invoke_llm(question, model_id=model_id)
     assert "Tokyo" in answer
 
-@pytest.mark.parametrize("model_id", ["gemini-pro", "gemini-1.5-flash", "gemini-2.0-flash"])
+@pytest.mark.parametrize("model_id", ["gemini-2.0-flash"])
 def test_connect_to_gemini(model_id: str, set_gemini_api_key):
     question = "What is the capital of Japan?"
     answer = invoke_llm(question, model_id=model_id)

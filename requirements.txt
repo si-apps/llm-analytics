@@ -1,4 +1,4 @@
 flask
 flask-compress
 sqlglot
-botocore
+boto3

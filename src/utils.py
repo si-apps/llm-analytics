@@ -1,10 +1,13 @@
+import http.client
 import json
 import logging
 import os
-from datetime import datetime, UTC
 from logging.config import fileConfig
 from pathlib import Path
-import http.client
+from typing import Optional
+
+from boto3.session import Session
+from botocore.config import Config
 
 _PROJECT_FOLDER = Path(os.path.dirname(os.path.abspath(__file__))).parent.absolute()
 
@@ -32,7 +35,7 @@ def _get_default_model_id() -> str:
         return os.environ["MODEL_ID"]
     elif ("ENV" in os.environ and "aws" in os.environ["ENV"]) or \
           "AWS_ACCESS_KEY_ID" in os.environ:
-        return "anthropic.claude-instant-v1"
+        return "us.anthropic.claude-haiku-4-5-20251001-v1:0"
     elif ("ENV" in os.environ and "google" in os.environ["ENV"]) or \
             "GEMINI_API_KEY" in os.environ:
         return "gemini-2.0-flash"
@@ -60,68 +63,69 @@ def _invoke_gemini_model(prompt: str, model_id: str) -> str:
     conn.request("POST", endpoint, body=json.dumps(data), headers=headers)
     response = conn.getresponse()
     result = response.read().decode()
+    if response.status == 404:
+        raise ValueError(
+            f"Model '{model_id}' not found or not supported for generateContent. "
+            "Check your model_id or use a supported Gemini model (e.g., 'gemini-2.0-pro', 'gemini-2.0-flash'). "
+            f"Response: {result}"
+        )
     json_data = json.loads(result)
     return json_data["candidates"][0]["content"]["parts"][0]["text"]
 
 
 def _invoke_bedrock_model(prompt: str, model_id: str) -> str:
     logging.info(f"Going to invoke Bedrock LLM model. Model id: {model_id}")
-    from botocore.session import Session
-    from botocore.awsrequest import AWSRequest
-    from botocore.auth import SigV4Auth
 
     session = Session()
-    region = session.get_config_variable("region")
-    host = f"bedrock-runtime.{region}.amazonaws.com"
-    path = f"/model/{model_id}/invoke"
-    service = "bedrock"
+    region = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
+    bedrock_client = session.client(
+        service_name="bedrock-runtime",
+        region_name=region,
+        config=Config(read_timeout=300),
+    )
+    body_dict = _format_model_body(prompt, None, model_id)
+    body_bytes = json.dumps(body_dict).encode("utf-8")
+    response = bedrock_client.invoke_model(
+        body=body_bytes,
+        modelId=model_id,
+    )
+    return _get_response_content(json.loads(response.get("body").read()), model_id)
 
-    payload = _format_bedrock_model_body(prompt, model_id)
-    request = AWSRequest(method="POST", url=f"https://{host}{path}", data=payload)
-    request.context["payload"] = payload
-    request.context["timestamp"] = datetime.now(UTC)
-    auth = SigV4Auth(session.get_credentials(), service, region)
-    auth.add_auth(request)
-
-    conn = http.client.HTTPSConnection(host)
-    conn.request("POST", path, body=payload, headers=request.headers)
-
-    response_json = json.loads(conn.getresponse().read().decode())
-    response_text = _get_response_content(response_json, model_id)
-    logging.info(f"Got response from LLM. Response length: {len(response_text)}")
-    return response_text
-
-def _format_bedrock_model_body(prompt: str, model_id: str) -> str:
+def _format_model_body(
+    prompt: str, system_prompt: Optional[str], model_id: str
+) -> dict:
+    if system_prompt is None:
+        system_prompt = "You are a SQL generator helper"
     if "claude" in model_id:
         body = {
-            'prompt': f"\n\nHuman: {prompt}\nAssistant:",
-            'max_tokens_to_sample': 200,
+            "anthropic_version": "bedrock-2023-05-31",
+            "system": system_prompt,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            "max_tokens": 2000,
             "temperature": 0.0,
         }
     elif "jamba" in model_id:
         body = {
             "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a SQL generator helper"
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
             ],
-            "n": 1
+            "n": 1,
         }
     else:
         raise ValueError(f"Unknown model_id: {model_id}")
-    return json.dumps(body)
+    return body
 
 
 def _get_response_content(response_json: dict, model_id: str) -> str:
     if "claude" in model_id:
-        return response_json["completion"]
+        return response_json["content"][0]["text"]
     elif "jamba" in model_id:
         return response_json["choices"][0]["message"]["content"]
     else:
         raise ValueError(f"Unknown model_id: {model_id}")
-
